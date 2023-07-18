@@ -1,60 +1,79 @@
 import { fetchBreeds, fetchCatByBreed } from './cat-api.js';
+import SlimSelect from 'slim-select';
+import Notiflix from 'notiflix';
 
-const breedSelect = document.querySelector('.breed-select');
-const catInfo = document.querySelector('.cat-info');
-const catImage = document.getElementById('breed_image');
+const res = {
+  breedSelect: document.querySelector('.breed-select'),
+  catInfo: document.querySelector('.cat-info'),
+  loader: document.querySelector('.loader'),
+  error: document.querySelector('.error'),
+};
 
-function populateBreedSelect(breeds) {
-  breedSelect.innerHTML = '';
-  breeds.forEach(breed => {
-    const option = document.createElement('option');
-    option.value = breed.id;
-    option.textContent = breed.name;
-    breedSelect.appendChild(option);
+const { breedSelect, catInfo, loader, error } = res;
+
+function populateBreedSelect(cat) {
+  const options = cat
+    .map(({ id, name }) => `<option value="${id}">${name}</option>`)
+    .join('');
+  breedSelect.innerHTML = options;
+  new SlimSelect({
+    select: '.breed-select',
   });
 }
 
 function showCatInfo(cat) {
-  const catImageContainer = document.createElement('div'); // Создаем контейнер для изображения
-  catImageContainer.appendChild(catImage);
-
-  catImage.src = cat.url;
-  catImage.alt = cat.breeds[0].name;
-
-  const catName = document.createElement('h2');
-  catName.textContent = cat.breeds[0].name;
-
-  const catDescription = document.createElement('p');
-  catDescription.textContent = cat.breeds[0].description;
-
-  const catTemperament = document.createElement('p');
-  catTemperament.textContent = cat.breeds[0].temperament;
-
-  catInfo.innerHTML = ''; // Очистить содержимое блока
-  catInfo.appendChild(catImageContainer); // Добавляем контейнер с изображением в блок
-  catInfo.appendChild(catName);
-  catInfo.appendChild(catDescription);
-  catInfo.appendChild(catTemperament);
-  catInfo.style.display = 'block'; // Показать блок
+  console.log(cat);
+  if (cat && cat.breeds && cat.breeds.length > 0) {
+    const breed = cat.breeds[0];
+    const { name, description, temperament } = breed;
+    const url = cat.url;
+    catInfo.innerHTML = `
+      <img class="cat-img" src="${url}" alt="${name}" width="460px">
+      <div class="cat-info-div">
+        <h2 class="cat-title">${name}</h2>
+        <p class="cat-description">${description}</p>
+        <p class="cat-temperament"><span class="cat-temperament-span">Temperament:</span>${temperament}</p>
+      </div>`;
+  } else {
+    catInfo.innerHTML = 'No information available for this cat.';
+  }
 }
 
-breedSelect.addEventListener('change', () => {
-  const breedId = breedSelect.value;
+breedSelect.addEventListener('change', onSelectBreed);
+
+function onSelectBreed(evt) {
+  loader.classList.remove('is-hidden');
+  breedSelect.classList.add('is-hidden');
+  catInfo.classList.add('is-hidden');
+
+  const breedId = evt.currentTarget.value;
   fetchCatByBreed(breedId)
-    .then(cat => {
-      showCatInfo(cat);
+    .then(data => {
+      loader.classList.add('is-hidden');
+      breedSelect.classList.remove('is-hidden');
+      showCatInfo(data);
+      catInfo.classList.remove('is-hidden');
     })
     .catch(error => {
       console.error('Error fetching cat:', error);
-      catInfo.style.display = 'none'; // Скрыть блок
+      loader.classList.add('is-hidden');
+      breedSelect.classList.remove('is-hidden');
+      catInfo.classList.add('is-hidden');
+      showErrorNotification(`Failed to get the cat's details`);
     });
-});
+}
+
+function showErrorNotification(error) {
+  Notiflix.Notify.failure(error);
+}
 
 fetchBreeds()
   .then(breeds => {
     populateBreedSelect(breeds);
+    console.log(breeds);
   })
   .catch(error => {
-    console.error('Error fetching breeds:', error);
-    breedSelect.disabled = true; // Отключить селект при ошибке
+    console.error('Error fetching breedserror:', error);
+    breedSelect.disabled = true;
+    showErrorNotification(error);
   });

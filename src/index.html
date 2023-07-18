@@ -5,40 +5,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Homework 10</title>
-  <style>
-    .loader,
-    .error {
-      display: none;
-    }
-
-    .cat-info {
-      display: none;
-    }
-
-    #breed_image {
-      max-width: 300px;
-      /* Добавляем стиль для ширины изображения */
-    }
-
-    .cat-info {
-      display: flex;
-      /* Добавляем стиль для использования flexbox */
-    }
-
-    .cat-info h2,
-    .cat-info p {
-      margin: 0;
-      /* Добавляем стиль для удаления внешних отступов элементов */
-    }
-  </style>
+  <link rel="stylesheet" href="https://unpkg.com/slim-select@latest/dist/slimselect.css" />
+  <link href="/src/sass/common.css" rel="stylesheet" type="text/css">
 </head>
 
 <body>
-  <select class="breed-select"></select>
+
+  <select class="breed-select" id="breedSelect"></select>
   <p class="loader">Loading data, please wait...</p>
+
   <p class="error">Oops! Something went wrong! Try reloading the page!</p>
   <div class="cat-info">
-    <img id="breed_image" alt="">
+
   </div>
 
   <script src="cat-api.js" type="module"></script>
